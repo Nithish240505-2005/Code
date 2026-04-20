@@ -1,0 +1,717 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Registration Page Specific Styles */
+    .register-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    .cyber-register-card {
+        background: rgba(10, 14, 23, 0.9);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .cyber-register-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, 
+            var(--cyber-neon-green), 
+            var(--cyber-neon-blue), 
+            var(--cyber-neon-purple));
+    }
+
+    .register-header {
+        background: rgba(26, 31, 46, 0.5);
+        padding: 2rem;
+        text-align: center;
+        border-bottom: 1px solid var(--cyber-light-gray);
+    }
+
+    .register-header h3 {
+        color: var(--cyber-neon-green);
+        font-weight: 600;
+        font-size: 1.8rem;
+        margin: 0;
+        letter-spacing: 1px;
+    }
+
+    .register-header p {
+        color: var(--cyber-text-dark);
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .register-body {
+        padding: 2rem;
+    }
+
+    .cyber-form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .cyber-form-label {
+        color: var(--cyber-text-light);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .cyber-form-input {
+        background: rgba(26, 31, 46, 0.7);
+        border: 1px solid var(--cyber-light-gray);
+        color: var(--cyber-text-light);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        width: 100%;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+    }
+
+    .cyber-form-input:focus {
+        outline: none;
+        border-color: var(--cyber-neon-green);
+        box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1);
+        background: rgba(26, 31, 46, 0.9);
+    }
+
+    .cyber-form-input::placeholder {
+        color: var(--cyber-text-dark);
+    }
+
+    .cyber-submit-btn {
+        background: linear-gradient(45deg, var(--cyber-neon-green), var(--cyber-neon-blue));
+        color: var(--cyber-dark);
+        border: none;
+        padding: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cyber-submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 255, 157, 0.3);
+    }
+
+    .cyber-submit-btn:active {
+        transform: translateY(0);
+    }
+
+    .cyber-submit-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .cyber-submit-btn:hover::before {
+        left: 100%;
+    }
+
+    .password-strength {
+        margin-top: 0.5rem;
+        height: 4px;
+        background: var(--cyber-light-gray);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .password-strength-bar {
+        height: 100%;
+        width: 0%;
+        border-radius: 2px;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .strength-weak { background: #dc3545; width: 25%; }
+    .strength-fair { background: #ffc107; width: 50%; }
+    .strength-good { background: #17a2b8; width: 75%; }
+    .strength-strong { background: #28a745; width: 100%; }
+
+    .strength-label {
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        color: var(--cyber-text-dark);
+    }
+
+    .form-error {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-error i {
+        font-size: 0.75rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--cyber-text-dark);
+    }
+
+    .register-links {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--cyber-light-gray);
+    }
+
+    .register-links a {
+        color: var(--cyber-neon-blue);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    .register-links a:hover {
+        color: var(--cyber-neon-green);
+        text-decoration: underline;
+    }
+
+    .security-features {
+        background: rgba(0, 255, 157, 0.1);
+        border: 1px solid rgba(0, 255, 157, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1.5rem;
+        color: var(--cyber-text-light);
+        font-size: 0.85rem;
+    }
+
+    .security-features h6 {
+        color: var(--cyber-neon-green);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .security-features ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+
+    .security-features li {
+        margin-bottom: 0.25rem;
+    }
+
+    .requirements-list {
+        font-size: 0.8rem;
+        color: var(--cyber-text-dark);
+        margin-top: 0.5rem;
+    }
+
+    .requirement {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .requirement.valid {
+        color: var(--cyber-neon-green);
+    }
+
+    .requirement.invalid {
+        color: var(--cyber-text-dark);
+    }
+
+    /* Registration Animation */
+    @keyframes registerGlow {
+        0%, 100% { opacity: 0.2; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(1.1); }
+    }
+
+    .register-glow {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--cyber-neon-blue), transparent 70%);
+        filter: blur(50px);
+        animation: registerGlow 4s ease-in-out infinite;
+        z-index: -1;
+    }
+
+    .register-glow:nth-child(1) {
+        top: -150px;
+        left: -150px;
+        animation-delay: 0s;
+    }
+
+    .register-glow:nth-child(2) {
+        bottom: -150px;
+        right: -150px;
+        animation-delay: 2s;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 576px) {
+        .cyber-register-card {
+            margin: 1rem;
+        }
+        
+        .register-header {
+            padding: 1.5rem;
+        }
+        
+        .register-body {
+            padding: 1.5rem;
+        }
+        
+        .register-header h3 {
+            font-size: 1.5rem;
+        }
+        
+        .security-features {
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+<div class="register-container">
+    <!-- Animated Glow Effects -->
+    <div class="register-glow"></div>
+    <div class="register-glow"></div>
+    
+    <div class="cyber-register-card">
+        <div class="register-header">
+            <h3><i class="fas fa-user-plus me-2"></i>Create Account</h3>
+            <p>Join CyberShield for advanced threat protection</p>
+        </div>
+        
+        <div class="register-body">
+            <form method="POST" action="{{ url_for('register') }}" id="registerForm">
+                {{ form.hidden_tag() }}
+                
+                <div class="cyber-form-group">
+                    <label for="username" class="cyber-form-label">
+                        <i class="fas fa-user me-1"></i>Username
+                    </label>
+                    <div class="input-wrapper">
+                        {{ form.username(class="cyber-form-input", id="username", 
+                          placeholder="Choose a username (4-80 characters)", 
+                          autocomplete="username", minlength="4", maxlength="80") }}
+                        <i class="fas fa-user-circle input-icon"></i>
+                    </div>
+                    <div class="requirements-list">
+                        <div class="requirement" id="usernameLength">
+                            <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                            <span>4-80 characters</span>
+                        </div>
+                    </div>
+                    {% if form.username.errors %}
+                        <div class="form-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {% for error in form.username.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="cyber-form-group">
+                    <label for="email" class="cyber-form-label">
+                        <i class="fas fa-envelope me-1"></i>Email Address
+                    </label>
+                    <div class="input-wrapper">
+                        {{ form.email(class="cyber-form-input", id="email", 
+                          placeholder="Enter your email address", 
+                          autocomplete="email", type="email") }}
+                        <i class="fas fa-envelope input-icon"></i>
+                    </div>
+                    <div class="requirements-list">
+                        <div class="requirement" id="emailValid">
+                            <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                            <span>Valid email format</span>
+                        </div>
+                    </div>
+                    {% if form.email.errors %}
+                        <div class="form-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {% for error in form.email.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="cyber-form-group">
+                    <label for="password" class="cyber-form-label">
+                        <i class="fas fa-lock me-1"></i>Password
+                    </label>
+                    <div class="input-wrapper">
+                        {{ form.password(class="cyber-form-input", id="password", 
+                          placeholder="Create a strong password", 
+                          autocomplete="new-password", minlength="6") }}
+                        <button type="button" class="password-toggle" onclick="togglePassword()" 
+                                style="background: none; border: none; position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--cyber-text-dark); cursor: pointer;">
+                            <i class="fas fa-eye" id="passwordToggle"></i>
+                        </button>
+                    </div>
+                    <div class="password-strength">
+                        <div class="password-strength-bar" id="passwordStrength"></div>
+                    </div>
+                    <div class="strength-label" id="strengthText">Password strength</div>
+                    <div class="requirements-list">
+                        <div class="requirement" id="lengthReq">
+                            <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                            <span>At least 6 characters</span>
+                        </div>
+                    </div>
+                    {% if form.password.errors %}
+                        <div class="form-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {% for error in form.password.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="cyber-form-group">
+                    <label for="confirmPassword" class="cyber-form-label">
+                        <i class="fas fa-lock me-1"></i>Confirm Password
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="password" class="cyber-form-input" id="confirmPassword" 
+                               placeholder="Confirm your password" autocomplete="new-password">
+                        <button type="button" class="password-toggle" onclick="toggleConfirmPassword()" 
+                                style="background: none; border: none; position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--cyber-text-dark); cursor: pointer;">
+                            <i class="fas fa-eye" id="confirmPasswordToggle"></i>
+                        </button>
+                    </div>
+                    <div class="requirements-list">
+                        <div class="requirement" id="matchReq">
+                            <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                            <span>Passwords must match</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                        <label class="form-check-label" for="terms" style="color: var(--cyber-text-light);">
+                            I agree to the 
+                            <a href="#" onclick="showTerms()" style="color: var(--cyber-neon-blue);">Terms of Service</a>
+                            and 
+                            <a href="#" onclick="showPrivacy()" style="color: var(--cyber-neon-blue);">Privacy Policy</a>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="cyber-form-group">
+                    {{ form.submit(class="cyber-submit-btn", id="registerBtn") }}
+                </div>
+            </form>
+            
+            <div class="security-features">
+                <h6><i class="fas fa-shield-alt me-1"></i>Your Security Matters</h6>
+                <ul>
+                    <li>All passwords are encrypted using SHA-256</li>
+                    <li>Two-factor authentication available</li>
+                    <li>Regular security audits performed</li>
+                    <li>GDPR compliant data handling</li>
+                </ul>
+            </div>
+            
+            <div class="register-links">
+                <p>Already have an account? 
+                    <a href="{{ url_for('login') }}">
+                        <i class="fas fa-sign-in-alt me-1"></i>Sign In
+                    </a>
+                </p>
+                <p class="mt-2">
+                    <a href="{{ url_for('verify_hash') }}">
+                        <i class="fas fa-search me-1"></i>Verify Existing Report
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Password strength checker
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        const strengthBar = document.getElementById('passwordStrength');
+        const strengthText = document.getElementById('strengthText');
+        
+        // Length check
+        if (password.length >= 6) strength++;
+        if (password.length >= 8) strength++;
+        
+        // Character type checks
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        
+        // Update strength bar
+        strengthBar.className = 'password-strength-bar';
+        strengthText.className = 'strength-label';
+        
+        switch(strength) {
+            case 0:
+            case 1:
+                strengthBar.classList.add('strength-weak');
+                strengthText.textContent = 'Weak';
+                strengthText.style.color = '#dc3545';
+                break;
+            case 2:
+                strengthBar.classList.add('strength-fair');
+                strengthText.textContent = 'Fair';
+                strengthText.style.color = '#ffc107';
+                break;
+            case 3:
+                strengthBar.classList.add('strength-good');
+                strengthText.textContent = 'Good';
+                strengthText.style.color = '#17a2b8';
+                break;
+            case 4:
+            case 5:
+                strengthBar.classList.add('strength-strong');
+                strengthText.textContent = 'Strong';
+                strengthText.style.color = '#28a745';
+                break;
+        }
+        
+        // Update requirements
+        updateRequirements(password);
+    }
+    
+    // Update requirement indicators
+    function updateRequirements(password) {
+        const lengthReq = document.getElementById('lengthReq');
+        const usernameReq = document.getElementById('usernameLength');
+        const emailReq = document.getElementById('emailValid');
+        const matchReq = document.getElementById('matchReq');
+        
+        // Password length requirement
+        if (password.length >= 6) {
+            lengthReq.classList.add('valid');
+            lengthReq.classList.remove('invalid');
+            lengthReq.innerHTML = '<i class="fas fa-check-circle" style="color: var(--cyber-neon-green);"></i><span>At least 6 characters ✓</span>';
+        } else {
+            lengthReq.classList.remove('valid');
+            lengthReq.classList.add('invalid');
+            lengthReq.innerHTML = '<i class="fas fa-circle" style="font-size: 0.5rem;"></i><span>At least 6 characters</span>';
+        }
+        
+        // Password match requirement
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        if (password && confirmPassword && password === confirmPassword) {
+            matchReq.classList.add('valid');
+            matchReq.classList.remove('invalid');
+            matchReq.innerHTML = '<i class="fas fa-check-circle" style="color: var(--cyber-neon-green);"></i><span>Passwords match ✓</span>';
+        } else {
+            matchReq.classList.remove('valid');
+            matchReq.classList.add('invalid');
+            matchReq.innerHTML = '<i class="fas fa-circle" style="font-size: 0.5rem;"></i><span>Passwords must match</span>';
+        }
+    }
+    
+    // Toggle password visibility
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('passwordToggle');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+    
+    function toggleConfirmPassword() {
+        const confirmInput = document.getElementById('confirmPassword');
+        const toggleIcon = document.getElementById('confirmPasswordToggle');
+        
+        if (confirmInput.type === 'password') {
+            confirmInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            confirmInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+    
+    // Form validation
+    function validateForm() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const terms = document.getElementById('terms').checked;
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        
+        let isValid = true;
+        
+        // Check username length
+        if (username.length < 4 || username.length > 80) {
+            isValid = false;
+            document.getElementById('usernameLength').classList.add('invalid');
+        }
+        
+        // Check email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            isValid = false;
+            document.getElementById('emailValid').classList.add('invalid');
+        }
+        
+        // Check password match
+        if (password !== confirmPassword) {
+            isValid = false;
+            document.getElementById('matchReq').classList.add('invalid');
+        }
+        
+        // Check password strength
+        if (password.length < 6) {
+            isValid = false;
+        }
+        
+        // Check terms agreement
+        if (!terms) {
+            isValid = false;
+            alert('Please agree to the Terms of Service and Privacy Policy');
+        }
+        
+        return isValid;
+    }
+    
+    // Form submission
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+            showError('Please fix the errors in the form.');
+            return;
+        }
+        
+        const btn = document.getElementById('registerBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Account...';
+        btn.disabled = true;
+    });
+    
+    // Real-time validation
+    document.getElementById('password').addEventListener('input', function(e) {
+        checkPasswordStrength(e.target.value);
+        
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        if (confirmPassword) {
+            updateRequirements(e.target.value);
+        }
+    });
+    
+    document.getElementById('confirmPassword').addEventListener('input', function(e) {
+        const password = document.getElementById('password').value;
+        updateRequirements(password);
+    });
+    
+    document.getElementById('username').addEventListener('input', function(e) {
+        const usernameReq = document.getElementById('usernameLength');
+        if (e.target.value.length >= 4 && e.target.value.length <= 80) {
+            usernameReq.classList.add('valid');
+            usernameReq.classList.remove('invalid');
+            usernameReq.innerHTML = '<i class="fas fa-check-circle" style="color: var(--cyber-neon-green);"></i><span>4-80 characters ✓</span>';
+        } else {
+            usernameReq.classList.remove('valid');
+            usernameReq.classList.add('invalid');
+            usernameReq.innerHTML = '<i class="fas fa-circle" style="font-size: 0.5rem;"></i><span>4-80 characters</span>';
+        }
+    });
+    
+    document.getElementById('email').addEventListener('input', function(e) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailReq = document.getElementById('emailValid');
+        
+        if (emailRegex.test(e.target.value)) {
+            emailReq.classList.add('valid');
+            emailReq.classList.remove('invalid');
+            emailReq.innerHTML = '<i class="fas fa-check-circle" style="color: var(--cyber-neon-green);"></i><span>Valid email format ✓</span>';
+        } else {
+            emailReq.classList.remove('valid');
+            emailReq.classList.add('invalid');
+            emailReq.innerHTML = '<i class="fas fa-circle" style="font-size: 0.5rem;"></i><span>Valid email format</span>';
+        }
+    });
+    
+    // Modal functions
+    function showTerms() {
+        alert('Terms of Service: This is a demo application. For production use, please consult with legal experts to create proper terms.');
+    }
+    
+    function showPrivacy() {
+        alert('Privacy Policy: Your data is encrypted and stored securely. We do not share your information with third parties.');
+    }
+    
+    function showError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger alert-dismissible fade show mt-3';
+        errorDiv.innerHTML = `
+            <i class="fas fa-exclamation-circle me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const form = document.getElementById('registerForm');
+        form.parentNode.insertBefore(errorDiv, form.nextSibling);
+        
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    // Auto-focus on username field
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('username').focus();
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,999 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Prediction Page Specific Styles */
+    .prediction-container {
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    .cyber-predict-card {
+        background: rgba(10, 14, 23, 0.9);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .cyber-predict-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, 
+            var(--cyber-neon-green), 
+            var(--cyber-neon-blue), 
+            var(--cyber-neon-purple));
+    }
+
+    .predict-header {
+        background: rgba(26, 31, 46, 0.5);
+        padding: 2rem;
+        text-align: center;
+        border-bottom: 1px solid var(--cyber-light-gray);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .predict-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(0, 255, 157, 0.1), transparent 50%),
+            radial-gradient(circle at 80% 50%, rgba(0, 217, 255, 0.1), transparent 50%);
+        animation: scanBackground 10s linear infinite;
+    }
+
+    @keyframes scanBackground {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .predict-header h3 {
+        color: var(--cyber-neon-green);
+        font-weight: 600;
+        font-size: 1.8rem;
+        margin: 0;
+        letter-spacing: 1px;
+        position: relative;
+    }
+
+    .predict-header p {
+        color: var(--cyber-text-light);
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        position: relative;
+    }
+
+    .predict-body {
+        padding: 2rem;
+    }
+
+    /* Form Sections */
+    .form-section {
+        margin-bottom: 2.5rem;
+        position: relative;
+    }
+
+    .form-section::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, 
+            var(--cyber-neon-green), 
+            var(--cyber-neon-blue));
+        border-radius: 2px;
+        opacity: 0.5;
+    }
+
+    .section-title {
+        color: var(--cyber-neon-green);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-left: 1rem;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-title i {
+        font-size: 1rem;
+        color: var(--cyber-neon-blue);
+    }
+
+    /* Form Controls */
+    .cyber-form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .cyber-form-label {
+        color: var(--cyber-text-light);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .cyber-form-label i {
+        color: var(--cyber-neon-blue);
+        margin-right: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .cyber-form-input {
+        background: rgba(26, 31, 46, 0.7);
+        border: 1px solid var(--cyber-light-gray);
+        color: var(--cyber-text-light);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        width: 100%;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+    }
+
+    .cyber-form-input:focus {
+        outline: none;
+        border-color: var(--cyber-neon-green);
+        box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1);
+        background: rgba(26, 31, 46, 0.9);
+    }
+
+    .cyber-form-input::placeholder {
+        color: var(--cyber-text-dark);
+    }
+
+    .cyber-form-select {
+        background: rgba(26, 31, 46, 0.7);
+        border: 1px solid var(--cyber-light-gray);
+        color: var(--cyber-text-light);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        width: 100%;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2300ff9d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 12px;
+    }
+
+    .cyber-form-select:focus {
+        outline: none;
+        border-color: var(--cyber-neon-green);
+        box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1);
+        background-color: rgba(26, 31, 46, 0.9);
+    }
+
+    .cyber-form-textarea {
+        background: rgba(26, 31, 46, 0.7);
+        border: 1px solid var(--cyber-light-gray);
+        color: var(--cyber-text-light);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        width: 100%;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .cyber-form-textarea:focus {
+        outline: none;
+        border-color: var(--cyber-neon-green);
+        box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1);
+        background: rgba(26, 31, 46, 0.9);
+    }
+
+    .form-text {
+        color: var(--cyber-text-dark);
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--cyber-light-gray);
+    }
+
+    .cyber-submit-btn {
+        background: linear-gradient(45deg, var(--cyber-neon-green), var(--cyber-neon-blue));
+        color: var(--cyber-dark);
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .cyber-submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 255, 157, 0.3);
+    }
+
+    .cyber-submit-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .cyber-submit-btn:hover::before {
+        left: 100%;
+    }
+
+    .sample-btn {
+        background: rgba(26, 31, 46, 0.7);
+        border: 1px solid var(--cyber-neon-blue);
+        color: var(--cyber-neon-blue);
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sample-btn:hover {
+        background: rgba(0, 217, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0, 217, 255, 0.2);
+    }
+
+    .danger-btn {
+        background: rgba(26, 31, 46, 0.7);
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .danger-btn:hover {
+        background: rgba(220, 53, 69, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(220, 53, 69, 0.2);
+    }
+
+    .clear-btn {
+        background: rgba(26, 31, 46, 0.7);
+        border: 1px solid var(--cyber-text-dark);
+        color: var(--cyber-text-light);
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .clear-btn:hover {
+        background: rgba(108, 117, 125, 0.1);
+        transform: translateY(-2px);
+    }
+
+    /* Attack Types Display */
+    .attack-types-card {
+        background: rgba(10, 14, 23, 0.9);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .attack-types-header {
+        background: rgba(26, 31, 46, 0.5);
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--cyber-light-gray);
+    }
+
+    .attack-types-header h5 {
+        color: var(--cyber-neon-green);
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .attack-types-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+
+    .attack-type-badge {
+        background: rgba(26, 31, 46, 0.7);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        color: var(--cyber-text-light);
+        font-weight: 500;
+        transition: all 0.3s ease;
+        cursor: default;
+    }
+
+    .attack-type-badge:hover {
+        transform: translateY(-3px);
+        border-color: var(--cyber-neon-green);
+        box-shadow: 0 5px 15px rgba(0, 255, 157, 0.1);
+    }
+
+    .attack-type-badge.normal { border-color: rgba(40, 167, 69, 0.5); }
+    .attack-type-badge.ddos { border-color: rgba(220, 53, 69, 0.5); }
+    .attack-type-badge.malware { border-color: rgba(255, 193, 7, 0.5); }
+    .attack-type-badge.phishing { border-color: rgba(0, 123, 255, 0.5); }
+    .attack-type-badge.bruteforce { border-color: rgba(108, 117, 125, 0.5); }
+    .attack-type-badge.sqlinjection { border-color: rgba(52, 58, 64, 0.5); }
+    .attack-type-badge.portscan { border-color: rgba(111, 66, 193, 0.5); }
+    .attack-type-badge.ransomware { border-color: rgba(214, 51, 132, 0.5); }
+    .attack-type-badge.mitm { border-color: rgba(32, 201, 151, 0.5); }
+    .attack-type-badge.zeroday { border-color: rgba(253, 126, 20, 0.5); }
+
+    /* Form Row Animation */
+    @keyframes rowHighlight {
+        0% { background: rgba(0, 255, 157, 0); }
+        50% { background: rgba(0, 255, 157, 0.05); }
+        100% { background: rgba(0, 255, 157, 0); }
+    }
+
+    .row-highlight {
+        animation: rowHighlight 1s ease;
+    }
+
+    /* Live Preview */
+    .preview-badge {
+        position: absolute;
+        top: 0;
+        right: 1rem;
+        background: rgba(0, 255, 157, 0.1);
+        color: var(--cyber-neon-green);
+        padding: 0.25rem 0.75rem;
+        border-radius: 0 0 4px 4px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        border: 1px solid rgba(0, 255, 157, 0.2);
+        border-top: none;
+    }
+
+    /* Loading Animation */
+    @keyframes pulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
+
+    .loading-pulse {
+        animation: pulse 1.5s infinite;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .cyber-predict-card {
+            margin: 1rem;
+        }
+        
+        .predict-header {
+            padding: 1.5rem;
+        }
+        
+        .predict-body {
+            padding: 1.5rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .cyber-submit-btn,
+        .sample-btn,
+        .danger-btn,
+        .clear-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .attack-types-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .form-section {
+            padding-left: 0.5rem;
+        }
+        
+        .form-section::before {
+            width: 2px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .attack-types-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .predict-header h3 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="prediction-container">
+    <!-- Prediction Form -->
+    <div class="cyber-predict-card">
+        <div class="predict-header">
+            <h3><i class="fas fa-shield-check me-2"></i>Cyber Attack Prediction</h3>
+            <p>Analyze network traffic patterns for potential security threats</p>
+        </div>
+        
+        <div class="predict-body">
+            <form method="POST" action="{{ url_for('predict') }}" id="predictForm">
+                <!-- Network Information Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-network-wired"></i>
+                        Network Information
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="Timestamp" class="cyber-form-label">
+                                <i class="fas fa-clock"></i> Timestamp
+                            </label>
+                            <input type="text" class="cyber-form-input" id="Timestamp" 
+                                   name="Timestamp" placeholder="2023-10-01 12:00:00"
+                                   value="{{ form_data.Timestamp if form_data else '' }}">
+                            <div class="form-text">Format: YYYY-MM-DD HH:MM:SS</div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="Source IP Address" class="cyber-form-label">
+                                <i class="fas fa-server"></i> Source IP
+                            </label>
+                            <input type="text" class="cyber-form-input" id="Source IP Address" 
+                                   name="Source IP Address" placeholder="192.168.1.100"
+                                   value="{{ form_data['Source IP Address'] if form_data else '' }}">
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="Destination IP Address" class="cyber-form-label">
+                                <i class="fas fa-server"></i> Destination IP
+                            </label>
+                            <input type="text" class="cyber-form-input" id="Destination IP Address" 
+                                   name="Destination IP Address" placeholder="10.0.0.50"
+                                   value="{{ form_data['Destination IP Address'] if form_data else '' }}">
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="Protocol" class="cyber-form-label">
+                                <i class="fas fa-project-diagram"></i> Protocol
+                            </label>
+                            <select class="cyber-form-select" id="Protocol" name="Protocol">
+                                <option value="6" {{ 'selected' if form_data and form_data.Protocol == '6' else '' }}>TCP (6)</option>
+                                <option value="17" {{ 'selected' if form_data and form_data.Protocol == '17' else '' }}>UDP (17)</option>
+                                <option value="1" {{ 'selected' if form_data and form_data.Protocol == '1' else '' }}>ICMP (1)</option>
+                                <option value="2" {{ 'selected' if form_data and form_data.Protocol == '2' else '' }}>IGMP (2)</option>
+                                <option value="89" {{ 'selected' if form_data and form_data.Protocol == '89' else '' }}>OSPF (89)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="Source Port" class="cyber-form-label">
+                                <i class="fas fa-plug"></i> Source Port
+                            </label>
+                            <input type="number" class="cyber-form-input" id="Source Port" 
+                                   name="Source Port" placeholder="443"
+                                   value="{{ form_data['Source Port'] if form_data else '' }}">
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="Destination Port" class="cyber-form-label">
+                                <i class="fas fa-plug"></i> Destination Port
+                            </label>
+                            <input type="number" class="cyber-form-input" id="Destination Port" 
+                                   name="Destination Port" placeholder="80"
+                                   value="{{ form_data['Destination Port'] if form_data else '' }}">
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="Packet Length" class="cyber-form-label">
+                                <i class="fas fa-ruler"></i> Packet Length
+                            </label>
+                            <input type="number" class="cyber-form-input" id="Packet Length" 
+                                   name="Packet Length" placeholder="1500"
+                                   value="{{ form_data['Packet Length'] if form_data else '' }}">
+                            <div class="form-text">Bytes</div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="Packet Type" class="cyber-form-label">
+                                <i class="fas fa-box"></i> Packet Type
+                            </label>
+                            <select class="cyber-form-select" id="Packet Type" name="Packet Type">
+                                <option value="TCP" {{ 'selected' if form_data and form_data['Packet Type'] == 'TCP' else '' }}>TCP</option>
+                                <option value="UDP" {{ 'selected' if form_data and form_data['Packet Type'] == 'UDP' else '' }}>UDP</option>
+                                <option value="ICMP" {{ 'selected' if form_data and form_data['Packet Type'] == 'ICMP' else '' }}>ICMP</option>
+                                <option value="SYN" {{ 'selected' if form_data and form_data['Packet Type'] == 'SYN' else '' }}>SYN</option>
+                                <option value="ACK" {{ 'selected' if form_data and form_data['Packet Type'] == 'ACK' else '' }}>ACK</option>
+                                <option value="FIN" {{ 'selected' if form_data and form_data['Packet Type'] == 'FIN' else '' }}>FIN</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Metrics Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-shield-alt"></i>
+                        Security Metrics
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label for="Anomaly Scores" class="cyber-form-label">
+                                <i class="fas fa-chart-line"></i> Anomaly Score
+                            </label>
+                            <input type="number" step="0.01" class="cyber-form-input" id="Anomaly Scores" 
+                                   name="Anomaly Scores" placeholder="0.15" min="0" max="1"
+                                   value="{{ form_data['Anomaly Scores'] if form_data else '0.0' }}">
+                            <div class="form-text">0 = Normal, 1 = Highly Anomalous</div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label for="Malware Indicators" class="cyber-form-label">
+                                <i class="fas fa-virus"></i> Malware Indicators
+                            </label>
+                            <select class="cyber-form-select" id="Malware Indicators" name="Malware Indicators">
+                                <option value="none" {{ 'selected' if form_data and form_data['Malware Indicators'] == 'none' else '' }}>None</option>
+                                <option value="suspicious" {{ 'selected' if form_data and form_data['Malware Indicators'] == 'suspicious' else '' }}>Suspicious</option>
+                                <option value="detected" {{ 'selected' if form_data and form_data['Malware Indicators'] == 'detected' else '' }}>Detected</option>
+                                <option value="high" {{ 'selected' if form_data and form_data['Malware Indicators'] == 'high' else '' }}>High Risk</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label for="Severity Level" class="cyber-form-label">
+                                <i class="fas fa-exclamation-circle"></i> Severity Level
+                            </label>
+                            <select class="cyber-form-select" id="Severity Level" name="Severity Level">
+                                <option value="Low" {{ 'selected' if form_data and form_data['Severity Level'] == 'Low' else '' }}>Low</option>
+                                <option value="Medium" {{ 'selected' if form_data and form_data['Severity Level'] == 'Medium' else '' }}>Medium</option>
+                                <option value="High" {{ 'selected' if form_data and form_data['Severity Level'] == 'High' else '' }}>High</option>
+                                <option value="Critical" {{ 'selected' if form_data and form_data['Severity Level'] == 'Critical' else '' }}>Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label for="Attack Signature" class="cyber-form-label">
+                                <i class="fas fa-signature"></i> Attack Signature
+                            </label>
+                            <input type="text" class="cyber-form-input" id="Attack Signature" 
+                                   name="Attack Signature" placeholder="CVE-2023-XXXX"
+                                   value="{{ form_data['Attack Signature'] if form_data else 'none' }}">
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label for="Action Taken" class="cyber-form-label">
+                                <i class="fas fa-tasks"></i> Action Taken
+                            </label>
+                            <select class="cyber-form-select" id="Action Taken" name="Action Taken">
+                                <option value="Allowed" {{ 'selected' if form_data and form_data['Action Taken'] == 'Allowed' else '' }}>Allowed</option>
+                                <option value="Blocked" {{ 'selected' if form_data and form_data['Action Taken'] == 'Blocked' else '' }}>Blocked</option>
+                                <option value="Quarantined" {{ 'selected' if form_data and form_data['Action Taken'] == 'Quarantined' else '' }}>Quarantined</option>
+                                <option value="Logged" {{ 'selected' if form_data and form_data['Action Taken'] == 'Logged' else '' }}>Logged</option>
+                                <option value="Alerted" {{ 'selected' if form_data and form_data['Action Taken'] == 'Alerted' else '' }}>Alerted</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="preview-badge" id="riskPreview">Risk: Low</div>
+                            <label for="Alerts/Warnings" class="cyber-form-label">
+                                <i class="fas fa-bell"></i> Alerts & Warnings
+                            </label>
+                            <textarea class="cyber-form-textarea" id="Alerts/Warnings" name="Alerts/Warnings" 
+                                      rows="2" placeholder="High packet rate detected">{{ form_data['Alerts/Warnings'] if form_data else 'none' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Context Information Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Context Information
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="User Information" class="cyber-form-label">
+                                <i class="fas fa-user"></i> User Information
+                            </label>
+                            <input type="text" class="cyber-form-input" id="User Information" 
+                                   name="User Information" placeholder="admin"
+                                   value="{{ form_data['User Information'] if form_data else '' }}">
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="Device Information" class="cyber-form-label">
+                                <i class="fas fa-laptop"></i> Device Information
+                            </label>
+                            <input type="text" class="cyber-form-input" id="Device Information" 
+                                   name="Device Information" placeholder="Windows 10"
+                                   value="{{ form_data['Device Information'] if form_data else '' }}">
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="Network Segment" class="cyber-form-label">
+                                <i class="fas fa-sitemap"></i> Network Segment
+                            </label>
+                            <select class="cyber-form-select" id="Network Segment" name="Network Segment">
+                                <option value="Corporate" {{ 'selected' if form_data and form_data['Network Segment'] == 'Corporate' else '' }}>Corporate</option>
+                                <option value="DMZ" {{ 'selected' if form_data and form_data['Network Segment'] == 'DMZ' else '' }}>DMZ</option>
+                                <option value="Guest" {{ 'selected' if form_data and form_data['Network Segment'] == 'Guest' else '' }}>Guest</option>
+                                <option value="IoT" {{ 'selected' if form_data and form_data['Network Segment'] == 'IoT' else '' }}>IoT</option>
+                                <option value="Server" {{ 'selected' if form_data and form_data['Network Segment'] == 'Server' else '' }}>Server</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="Geo-location Data" class="cyber-form-label">
+                                <i class="fas fa-globe"></i> Geo-location
+                            </label>
+                            <input type="text" class="cyber-form-input" id="Geo-location Data" 
+                                   name="Geo-location Data" placeholder="US"
+                                   value="{{ form_data['Geo-location Data'] if form_data else '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label for="Payload Data" class="cyber-form-label">
+                                <i class="fas fa-code"></i> Payload Data
+                            </label>
+                            <textarea class="cyber-form-textarea" id="Payload Data" name="Payload Data" 
+                                      rows="3" placeholder="GET /index.html HTTP/1.1">{{ form_data['Payload Data'] if form_data else '' }}</textarea>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label for="Log Source" class="cyber-form-label">
+                                <i class="fas fa-database"></i> Log Source
+                            </label>
+                            <select class="cyber-form-select" id="Log Source" name="Log Source">
+                                <option value="Firewall" {{ 'selected' if form_data and form_data['Log Source'] == 'Firewall' else '' }}>Firewall</option>
+                                <option value="IDS" {{ 'selected' if form_data and form_data['Log Source'] == 'IDS' else '' }}>IDS</option>
+                                <option value="IPS" {{ 'selected' if form_data and form_data['Log Source'] == 'IPS' else '' }}>IPS</option>
+                                <option value="Router" {{ 'selected' if form_data and form_data['Log Source'] == 'Router' else '' }}>Router</option>
+                                <option value="Switch" {{ 'selected' if form_data and form_data['Log Source'] == 'Switch' else '' }}>Switch</option>
+                                <option value="Server" {{ 'selected' if form_data and form_data['Log Source'] == 'Server' else '' }}>Server</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label for="Proxy Information" class="cyber-form-label">
+                                <i class="fas fa-shield-virus"></i> Proxy Information
+                            </label>
+                            <input type="text" class="cyber-form-input" id="Proxy Information" 
+                                   name="Proxy Information" placeholder="proxy.company.com"
+                                   value="{{ form_data['Proxy Information'] if form_data else 'none' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-lg-6 mb-3">
+                            <label for="Firewall Logs" class="cyber-form-label">
+                                <i class="fas fa-fire"></i> Firewall Logs
+                            </label>
+                            <textarea class="cyber-form-textarea" id="Firewall Logs" name="Firewall Logs" 
+                                      rows="3" placeholder="Rule 101 blocked">{{ form_data['Firewall Logs'] if form_data else '' }}</textarea>
+                        </div>
+                        <div class="col-lg-6 mb-3">
+                            <label for="IDS/IPS Alerts" class="cyber-form-label">
+                                <i class="fas fa-radar"></i> IDS/IPS Alerts
+                            </label>
+                            <textarea class="cyber-form-textarea" id="IDS/IPS Alerts" name="IDS/IPS Alerts" 
+                                      rows="3" placeholder="Port scan detected">{{ form_data['IDS/IPS Alerts'] if form_data else 'none' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button type="submit" class="cyber-submit-btn" id="predictBtn">
+                        <i class="fas fa-shield-check"></i> Analyze Traffic
+                    </button>
+                    <button type="button" class="sample-btn" onclick="fillNormalSample()">
+                        <i class="fas fa-wifi"></i> Normal Sample
+                    </button>
+                    <button type="button" class="danger-btn" onclick="fillMaliciousSample()">
+                        <i class="fas fa-bug"></i> Malicious Sample
+                    </button>
+                    <button type="reset" class="clear-btn" onclick="clearForm()">
+                        <i class="fas fa-eraser"></i> Clear Form
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Attack Types Display -->
+    <div class="attack-types-card">
+        <div class="attack-types-header">
+            <h5><i class="fas fa-crosshairs"></i> Detectable Attack Types</h5>
+        </div>
+        <div class="attack-types-grid">
+            <div class="attack-type-badge normal">Normal</div>
+            <div class="attack-type-badge ddos">DDoS</div>
+            <div class="attack-type-badge malware">Malware</div>
+            <div class="attack-type-badge phishing">Phishing</div>
+            <div class="attack-type-badge bruteforce">Brute Force</div>
+            <div class="attack-type-badge sqlinjection">SQL Injection</div>
+            <div class="attack-type-badge portscan">Port Scan</div>
+            <div class="attack-type-badge ransomware">Ransomware</div>
+            <div class="attack-type-badge mitm">MITM</div>
+            <div class="attack-type-badge zeroday">Zero-Day</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Fill Normal Sample Data
+    async function fillNormalSample() {
+        try {
+            const btn = event.currentTarget;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            btn.disabled = true;
+            
+            const response = await fetch('/sample_data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            
+            // Fill form with sample data
+            Object.entries(data).forEach(([key, value]) => {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (element.tagName === 'SELECT') {
+                        element.value = value;
+                    } else {
+                        element.value = value;
+                    }
+                    
+                    // Trigger change event for visual feedback
+                    element.dispatchEvent(new Event('change'));
+                }
+            });
+            
+            // Highlight the row
+            document.querySelector('.form-section').classList.add('row-highlight');
+            setTimeout(() => {
+                document.querySelector('.form-section').classList.remove('row-highlight');
+            }, 1000);
+            
+            showAlert('✅ Normal traffic sample loaded successfully!', 'success');
+            
+            // Revert button
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+            
+        } catch (error) {
+            console.error('Error loading sample data:', error);
+            showAlert('❌ Failed to load sample data', 'danger');
+            event.currentTarget.innerHTML = '<i class="fas fa-wifi"></i> Normal Sample';
+            event.currentTarget.disabled = false;
+        }
+    }
+    
+    // Fill Malicious Sample Data
+    async function fillMaliciousSample() {
+        try {
+            const btn = event.currentTarget;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            btn.disabled = true;
+            
+            const response = await fetch('/malicious_sample', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            
+            // Fill form with malicious sample data
+            Object.entries(data).forEach(([key, value]) => {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (element.tagName === 'SELECT') {
+                        element.value = value;
+                    } else {
+                        element.value = value;
+                    }
+                    
+                    // Trigger change event for visual feedback
+                    element.dispatchEvent(new Event('change'));
+                }
+            });
+            
+            // Highlight the row
+            document.querySelectorAll('.form-section')[1].classList.add('row-highlight');
+            setTimeout(() => {
+                document.querySelectorAll('.form-section')[1].classList.remove('row-highlight');
+            }, 1000);
+            
+            showAlert('⚠️ Malicious traffic sample loaded! Check security metrics.', 'warning');
+            
+            // Revert button
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+            
+        } catch (error) {
+            console.error('Error loading malicious sample:', error);
+            showAlert('❌ Failed to load malicious sample', 'danger');
+            event.currentTarget.innerHTML = '<i class="fas fa-bug"></i> Malicious Sample';
+            event.currentTarget.disabled = false;
+        }
+    }
+    
+    // Clear Form with confirmation
+    function clearForm() {
+        if (confirm('Are you sure you want to clear all form data?')) {
+            document.getElementById('predictForm').reset();
+            showAlert('Form cleared successfully', 'info');
+        }
+    }
+    
+    // Show alert notification
+    function showAlert(message, type) {
+        // Remove existing alerts
+        const existingAlert = document.querySelector('.alert-dismissible');
+        if (existingAlert) {
+            existingAlert.remove();
+        }
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+        alertDiv.style.cssText = 'position: fixed; top: 100px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'danger' ? 'times-circle' : 'info-circle'} me-2"></i>
+                <span>${message}</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    // Form submission handler
+    document.getElementById('predictForm').addEventListener('submit', function(e) {
+        const btn = document.getElementById('predictBtn');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+        btn.disabled = true;
+        
+        // Add loading class to form
+        this.classList.add('loading-pulse');
+    });
+    
+    // Real-time risk calculation
+    function calculateRisk() {
+        const anomalyScore = parseFloat(document.getElementById('Anomaly Scores').value) || 0;
+        const malwareIndicators = document.getElementById('Malware Indicators').value;
+        const severity = document.getElementById('Severity Level').value;
+        
+        let riskScore = anomalyScore * 100;
+        
+        // Adjust based on malware indicators
+        if (malwareIndicators === 'suspicious') riskScore += 20;
+        if (malwareIndicators === 'detected') riskScore += 40;
+        if (malwareIndicators === 'high') riskScore += 60;
+        
+        // Adjust based on severity
+        if (severity === 'Medium') riskScore += 20;
+        if (severity === 'High') riskScore += 40;
+        if (severity === 'Critical') riskScore += 60;
+        
+        // Cap at 100
+        riskScore = Math.min(riskScore, 100);
+        
+        // Update preview badge
+        const preview = document.getElementById('riskPreview');
+        let riskLevel = 'Low';
+        let color = 'var(--cyber-neon-green)';
+        
+        if (riskScore >= 70) {
+            riskLevel = 'Critical';
+            color = '#dc3545';
+        } else if (riskScore >= 50) {
+            riskLevel = 'High';
+            color = '#ffc107';
+        } else if (riskScore >= 30) {
+            riskLevel = 'Medium';
+            color = '#17a2b8';
+        }
+        
+        preview.textContent = `Risk: ${riskLevel}`;
+        preview.style.borderColor = color;
+        preview.style.color = color;
+        preview.style.background = color + '10';
+    }
+    
+    // Add event listeners for risk calculation
+    document.getElementById('Anomaly Scores').addEventListener('input', calculateRisk);
+    document.getElementById('Malware Indicators').addEventListener('change', calculateRisk);
+    document.getElementById('Severity Level').addEventListener('change', calculateRisk);
+    
+    // Initialize risk calculation
+    document.addEventListener('DOMContentLoaded', function() {
+        calculateRisk();
+        
+        // Auto-focus on first input
+        document.getElementById('Timestamp').focus();
+        
+        // Add form validation
+        const form = document.getElementById('predictForm');
+        const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+        
+        inputs.forEach(input => {
+            input.addEventListener('invalid', function(e) {
+                e.preventDefault();
+                this.classList.add('is-invalid');
+                showAlert(`Please fill in ${this.labels[0].textContent}`, 'danger');
+            });
+            
+            input.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        });
+    });
+    
+    // Add CSS for invalid state
+    const style = document.createElement('style');
+    style.textContent = `
+        .is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+
+{% endblock %}

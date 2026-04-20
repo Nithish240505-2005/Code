@@ -1,0 +1,729 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* File Share Specific Styles */
+    .file-share-container {
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    .share-header {
+        background: linear-gradient(90deg, 
+            rgba(10, 14, 23, 0.9) 0%, 
+            rgba(26, 31, 46, 0.9) 100%);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .share-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, 
+            var(--cyber-neon-green), 
+            var(--cyber-neon-blue), 
+            var(--cyber-neon-purple));
+    }
+
+    .share-header h1 {
+        color: var(--cyber-text-light);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(45deg, var(--cyber-neon-green), var(--cyber-neon-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Share Form Styles */
+    .share-form-card {
+        background: rgba(10, 14, 23, 0.9);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .share-form-header {
+        background: rgba(26, 31, 46, 0.5);
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--cyber-light-gray);
+    }
+
+    .share-form-header h5 {
+        color: var(--cyber-neon-green);
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .share-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--cyber-light-gray);
+        padding: 0 1.5rem;
+    }
+
+    .share-tab {
+        padding: 1rem 1.5rem;
+        color: var(--cyber-text-dark);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-bottom: 2px solid transparent;
+    }
+
+    .share-tab:hover {
+        color: var(--cyber-neon-green);
+    }
+
+    .share-tab.active {
+        color: var(--cyber-neon-green);
+        border-bottom-color: var(--cyber-neon-green);
+    }
+
+    .share-form-content {
+        padding: 1.5rem;
+    }
+
+    .share-form {
+        display: none;
+    }
+
+    .share-form.active {
+        display: block;
+    }
+
+    .cyber-input-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .cyber-input-group label {
+        display: block;
+        color: var(--cyber-text-light);
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .cyber-input-group input,
+    .cyber-input-group textarea {
+        width: 100%;
+        background: rgba(26, 31, 46, 0.5);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: var(--cyber-text-light);
+        transition: all 0.3s ease;
+    }
+
+    .cyber-input-group input:focus,
+    .cyber-input-group textarea:focus {
+        outline: none;
+        border-color: var(--cyber-neon-green);
+        box-shadow: 0 0 0 2px rgba(0, 255, 157, 0.1);
+    }
+
+    .cyber-input-group input::placeholder,
+    .cyber-input-group textarea::placeholder {
+        color: var(--cyber-text-dark);
+    }
+
+    /* Real-time Analysis */
+    .analysis-panel {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(26, 31, 46, 0.3);
+        border-radius: 8px;
+        border-left: 3px solid var(--cyber-light-gray);
+        transition: all 0.3s ease;
+    }
+
+    .analysis-panel.anomaly {
+        border-left-color: #dc3545;
+        background: rgba(220, 53, 69, 0.1);
+    }
+
+    .analysis-panel.safe {
+        border-left-color: #28a745;
+        background: rgba(40, 167, 69, 0.1);
+    }
+
+    .analysis-score {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .analysis-score.high-risk {
+        color: #dc3545;
+    }
+
+    .analysis-score.medium-risk {
+        color: #ffc107;
+    }
+
+    .analysis-score.low-risk {
+        color: #28a745;
+    }
+
+    /* Messages List */
+    .messages-section {
+        margin-top: 2rem;
+    }
+
+    .messages-card {
+        background: rgba(10, 14, 23, 0.9);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .messages-header {
+        background: rgba(26, 31, 46, 0.5);
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--cyber-light-gray);
+    }
+
+    .messages-header h5 {
+        color: var(--cyber-neon-green);
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .message-item {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--cyber-light-gray);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .message-item:hover {
+        background: rgba(0, 255, 157, 0.05);
+    }
+
+    .message-item.unread {
+        background: rgba(0, 217, 255, 0.05);
+    }
+
+    .message-item.anomaly {
+        border-left: 3px solid #dc3545;
+    }
+
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .message-sender {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .message-sender i {
+        color: var(--cyber-neon-green);
+    }
+
+    .message-sender span {
+        font-weight: 600;
+        color: var(--cyber-text-light);
+    }
+
+    .message-time {
+        color: var(--cyber-text-dark);
+        font-size: 0.8rem;
+    }
+
+    .message-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .badge-anomaly {
+        background: rgba(220, 53, 69, 0.2);
+        color: #ff6b6b;
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .badge-safe {
+        background: rgba(40, 167, 69, 0.2);
+        color: var(--cyber-neon-green);
+        border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+    .message-content {
+        color: var(--cyber-text-light);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .message-attachment {
+        background: rgba(26, 31, 46, 0.5);
+        border-radius: 8px;
+        padding: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .message-attachment i {
+        color: var(--cyber-neon-blue);
+    }
+
+    .download-link {
+        color: var(--cyber-neon-blue);
+        text-decoration: none;
+        margin-left: 0.5rem;
+    }
+
+    .download-link:hover {
+        color: var(--cyber-neon-green);
+    }
+
+    .anomaly-details {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: rgba(220, 53, 69, 0.1);
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+
+    .anomaly-details i {
+        color: #dc3545;
+        margin-right: 0.5rem;
+    }
+
+    /* Empty State */
+    .empty-messages {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--cyber-text-light);
+    }
+
+    .empty-messages-icon {
+        font-size: 3rem;
+        color: var(--cyber-text-dark);
+        margin-bottom: 1rem;
+    }
+
+    /* File Upload Area */
+    .file-upload-area {
+        border: 2px dashed var(--cyber-light-gray);
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .file-upload-area:hover {
+        border-color: var(--cyber-neon-green);
+        background: rgba(0, 255, 157, 0.05);
+    }
+
+    .file-upload-area i {
+        font-size: 2rem;
+        color: var(--cyber-neon-green);
+        margin-bottom: 0.5rem;
+    }
+
+    .file-info {
+        margin-top: 1rem;
+        padding: 0.5rem;
+        background: rgba(26, 31, 46, 0.5);
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .message-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .share-tabs {
+            flex-direction: column;
+        }
+        
+        .share-tab {
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="file-share-container">
+    <!-- Header -->
+    <div class="share-header">
+        <h1><i class="fas fa-share-alt me-2"></i>Secure File Sharing & Messaging</h1>
+        <p>Share files and messages with anomaly detection and blockchain verification</p>
+    </div>
+
+    <!-- Share Form -->
+    <div class="share-form-card">
+        <div class="share-form-header">
+            <h5><i class="fas fa-paper-plane"></i> Share Message or File</h5>
+        </div>
+        
+        <div class="share-tabs">
+            <div class="share-tab active" onclick="switchTab('message')">
+                <i class="fas fa-envelope"></i> Send Message
+            </div>
+            <div class="share-tab" onclick="switchTab('file')">
+                <i class="fas fa-file-upload"></i> Share File
+            </div>
+        </div>
+
+        <div class="share-form-content">
+            <!-- Message Form -->
+            <form id="messageForm" class="share-form active" method="POST">
+                <input type="hidden" name="action" value="send_message">
+                
+                <div class="cyber-input-group">
+                    <label><i class="fas fa-envelope"></i> Receiver Email</label>
+                    <input type="email" name="receiver_email" placeholder="Enter receiver's email address" required>
+                </div>
+                
+                <div class="cyber-input-group">
+                    <label><i class="fas fa-comment"></i> Message</label>
+                    <textarea name="message_content" rows="4" placeholder="Type your message here..." 
+                              oninput="analyzeMessageRealTime(this.value)" required></textarea>
+                </div>
+                
+                <!-- Real-time Analysis Panel -->
+                <div id="analysisPanel" class="analysis-panel" style="display: none;">
+                    <div class="analysis-score" id="analysisScore"></div>
+                    <div id="analysisDetails"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                </button>
+            </form>
+
+            <!-- File Share Form -->
+            <form id="fileForm" class="share-form" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="share_file">
+                
+                <div class="cyber-input-group">
+                    <label><i class="fas fa-envelope"></i> Receiver Email</label>
+                    <input type="email" name="receiver_email" placeholder="Enter receiver's email address" required>
+                </div>
+                
+                <div class="cyber-input-group">
+                    <label><i class="fas fa-comment"></i> Message (Optional)</label>
+                    <textarea name="message_content" rows="2" placeholder="Add a message with your file..."></textarea>
+                </div>
+                
+                <div class="cyber-input-group">
+                    <label><i class="fas fa-file"></i> Select File</label>
+                    <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload or drag and drop</p>
+                        <small>Allowed: txt, pdf, png, jpg, gif, doc, xls, csv (Max 10MB)</small>
+                        <input type="file" id="fileInput" name="file" style="display: none;" onchange="updateFileName(this)">
+                    </div>
+                    <div id="fileInfo" class="file-info" style="display: none;"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-share me-2"></i>Share File
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Received Messages -->
+    <div class="messages-section">
+        <div class="messages-card">
+            <div class="messages-header">
+                <h5><i class="fas fa-inbox"></i> Received Messages & Files</h5>
+            </div>
+            
+            {% if received_messages %}
+                {% for message in received_messages %}
+                <div class="message-item {% if not message.read %}unread{% endif %} {% if message.is_anomaly %}anomaly{% endif %}">
+                    <div class="message-header">
+                        <div class="message-sender">
+                            <i class="fas fa-user-circle"></i>
+                            <span>{{ message.sender.username }}</span>
+                            <span class="message-badge {% if message.is_anomaly %}badge-anomaly{% else %}badge-safe{% endif %}">
+                                {% if message.is_anomaly %}
+                                    <i class="fas fa-exclamation-triangle"></i> Anomaly: {{ "%.1f"|format(message.anomaly_score * 100) }}%
+                                {% else %}
+                                    <i class="fas fa-check-circle"></i> Safe
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="message-time">
+                            <i class="far fa-clock"></i> {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </div>
+                    </div>
+                    
+                    <div class="message-content">
+                        {{ message.message_content }}
+                    </div>
+                    
+                    {% if message.file_path %}
+                    <div class="message-attachment">
+                        <i class="fas fa-paperclip"></i>
+                        <span>{{ message.file_name }}</span>
+                        <span class="text-muted">({{ "%.2f"|format(message.file_size / 1024) }} KB)</span>
+                        <a href="{{ url_for('download_shared_file', message_id=message.id) }}" class="download-link">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if message.is_anomaly %}
+                    <div class="anomaly-details">
+                        <i class="fas fa-shield-alt"></i>
+                        <strong>Security Alert:</strong> Suspicious content detected!
+                        {% if message.anomaly_type %}
+                        <br>Type: {{ message.anomaly_type }}
+                        {% endif %}
+                        <br>Blockchain Hash: <code>{{ message.blockchain_hash[:16] }}...</code>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-messages">
+                    <div class="empty-messages-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h4>No messages received</h4>
+                    <p>Share your email address to receive secure messages and files</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sent Messages -->
+        <div class="messages-card">
+            <div class="messages-header">
+                <h5><i class="fas fa-paper-plane"></i> Sent Messages</h5>
+            </div>
+            
+            {% if sent_messages %}
+                {% for message in sent_messages %}
+                <div class="message-item {% if message.is_anomaly %}anomaly{% endif %}">
+                    <div class="message-header">
+                        <div class="message-sender">
+                            <i class="fas fa-user-circle"></i>
+                            <span>To: {{ message.receiver_email }}</span>
+                            <span class="message-badge {% if message.is_anomaly %}badge-anomaly{% else %}badge-safe{% endif %}">
+                                {% if message.is_anomaly %}
+                                    <i class="fas fa-exclamation-triangle"></i> Anomaly: {{ "%.1f"|format(message.anomaly_score * 100) }}%
+                                {% else %}
+                                    <i class="fas fa-check-circle"></i> Safe
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="message-time">
+                            <i class="far fa-clock"></i> {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </div>
+                    </div>
+                    
+                    <div class="message-content">
+                        {{ message.message_content }}
+                    </div>
+                    
+                    {% if message.file_path %}
+                    <div class="message-attachment">
+                        <i class="fas fa-paperclip"></i>
+                        <span>{{ message.file_name }}</span>
+                        <span class="text-muted">({{ "%.2f"|format(message.file_size / 1024) }} KB)</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-messages">
+                    <div class="empty-messages-icon">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <h4>No messages sent</h4>
+                    <p>Start sharing secure messages and files with other users</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    let analysisTimeout;
+    
+    // Switch between message and file tabs
+    function switchTab(tab) {
+        // Update tab styles
+        document.querySelectorAll('.share-tab').forEach(t => t.classList.remove('active'));
+        if (tab === 'message') {
+            document.querySelectorAll('.share-tab')[0].classList.add('active');
+        } else {
+            document.querySelectorAll('.share-tab')[1].classList.add('active');
+        }
+        
+        // Update form visibility
+        document.querySelectorAll('.share-form').forEach(f => f.classList.remove('active'));
+        if (tab === 'message') {
+            document.getElementById('messageForm').classList.add('active');
+        } else {
+            document.getElementById('fileForm').classList.add('active');
+        }
+    }
+    
+    // Real-time message analysis
+    function analyzeMessageRealTime(message) {
+        clearTimeout(analysisTimeout);
+        
+        if (message.length < 10) {
+            document.getElementById('analysisPanel').style.display = 'none';
+            return;
+        }
+        
+        analysisTimeout = setTimeout(() => {
+            fetch('/analyze-message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const panel = document.getElementById('analysisPanel');
+                const scoreDiv = document.getElementById('analysisScore');
+                const detailsDiv = document.getElementById('analysisDetails');
+                
+                panel.style.display = 'block';
+                panel.classList.remove('anomaly', 'safe');
+                
+                if (data.is_anomaly) {
+                    panel.classList.add('anomaly');
+                    scoreDiv.innerHTML = `⚠️ Anomaly Detected - Score: ${(data.score * 100).toFixed(1)}%`;
+                    scoreDiv.className = `analysis-score ${data.risk_level.toLowerCase()}-risk`;
+                    
+                    detailsDiv.innerHTML = `
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Risk Level: ${data.risk_level}</strong><br>
+                        ${data.detected_patterns ? `<small>Detected patterns: ${data.detected_patterns.join(', ')}</small>` : ''}
+                        <br><small>This message may contain suspicious content. Please review carefully.</small>
+                    `;
+                } else {
+                    panel.classList.add('safe');
+                    scoreDiv.innerHTML = `✅ Message appears safe - Score: ${(data.score * 100).toFixed(1)}%`;
+                    scoreDiv.className = `analysis-score low-risk`;
+                    
+                    detailsDiv.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Message analysis complete</strong><br>
+                        <small>No suspicious patterns detected.</small>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Analysis error:', error);
+            });
+        }, 500);
+    }
+    
+    // Update file name display
+    function updateFileName(input) {
+        const fileInfo = document.getElementById('fileInfo');
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const fileSize = (file.size / 1024).toFixed(2);
+            fileInfo.style.display = 'block';
+            fileInfo.innerHTML = `
+                <i class="fas fa-file"></i> ${file.name}
+                <span class="text-muted">(${fileSize} KB)</span>
+            `;
+        } else {
+            fileInfo.style.display = 'none';
+        }
+    }
+    
+    // Drag and drop functionality
+    const dropZone = document.querySelector('.file-upload-area');
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--cyber-neon-green)';
+            dropZone.style.background = 'rgba(0, 255, 157, 0.05)';
+        });
+        
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--cyber-light-gray)';
+            dropZone.style.background = 'transparent';
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--cyber-light-gray)';
+            dropZone.style.background = 'transparent';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const fileInput = document.getElementById('fileInput');
+                fileInput.files = files;
+                updateFileName(fileInput);
+            }
+        });
+    }
+    
+    // Show notifications for new messages
+    function checkNewMessages() {
+        fetch('/api/check-new-messages')
+            .then(response => response.json())
+            .then(data => {
+                if (data.new_messages > 0) {
+                    const notification = document.createElement('div');
+                    notification.className = 'alert alert-info alert-dismissible fade show position-fixed';
+                    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+                    notification.innerHTML = `
+                        <i class="fas fa-envelope me-2"></i>
+                        You have ${data.new_messages} new message${data.new_messages > 1 ? 's' : ''}!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => notification.remove(), 5000);
+                }
+            })
+            .catch(error => console.error('Error checking messages:', error));
+    }
+    
+    // Check for new messages every 30 seconds
+    setInterval(checkNewMessages, 30000);
+    
+    // Auto-hide alerts after 5 seconds
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                if (alert.parentNode) alert.remove();
+            }, 5000);
+        });
+    }, 1000);
+</script>
+
+{% endblock %}

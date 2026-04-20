@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Cybersecurity Theme Styles */
+    :root {
+        --cyber-dark: #0a0e17;
+        --cyber-darker: #050811;
+        --cyber-neon-green: #00ff9d;
+        --cyber-neon-blue: #00d9ff;
+        --cyber-neon-purple: #9d4edd;
+        --cyber-gray: #1a1f2e;
+        --cyber-light-gray: #2d3447;
+        --cyber-card-bg: rgba(10, 14, 23, 0.9);
+        --cyber-glow: 0 0 10px rgba(0, 255, 157, 0.3);
+    }
+
+    .cyber-bg {
+        background: linear-gradient(135deg, var(--cyber-darker) 0%, var(--cyber-dark) 50%, #0c121f 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cyber-bg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(157, 78, 221, 0.1) 0%, transparent 50%);
+        z-index: 0;
+    }
+
+    .cyber-text-glow {
+        text-shadow: 0 0 10px var(--cyber-neon-green), 
+                     0 0 20px var(--cyber-neon-green),
+                     0 0 30px var(--cyber-neon-green);
+    }
+
+    .cyber-subtitle-glow {
+        text-shadow: 0 0 5px var(--cyber-neon-blue),
+                     0 0 10px var(--cyber-neon-blue);
+    }
+
+    .feature-card {
+        background: var(--cyber-card-bg);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 255, 157, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .feature-card:hover::before {
+        left: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 255, 157, 0.2),
+                    0 0 15px rgba(0, 255, 157, 0.1);
+        border-color: var(--cyber-neon-green);
+    }
+
+    .feature-card .card-title {
+        color: var(--cyber-neon-green);
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    .feature-card .card-text {
+        color: #a0aec0;
+    }
+
+    .cyber-jumbotron {
+        background: rgba(10, 14, 23, 0.8);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 15px;
+        padding: 3rem 2rem;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .cyber-jumbotron::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, 
+            var(--cyber-neon-green), 
+            var(--cyber-neon-blue), 
+            var(--cyber-neon-purple));
+    }
+
+    .cyber-btn-primary {
+        background: linear-gradient(45deg, var(--cyber-neon-green), var(--cyber-neon-blue));
+        border: none;
+        color: var(--cyber-dark);
+        font-weight: 600;
+        padding: 12px 30px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cyber-btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .cyber-btn-primary:hover::before {
+        left: 100%;
+    }
+
+    .cyber-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0, 255, 157, 0.4);
+    }
+
+    .cyber-btn-outline {
+        background: transparent;
+        border: 2px solid var(--cyber-neon-green);
+        color: var(--cyber-neon-green);
+        font-weight: 600;
+        padding: 12px 30px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .cyber-btn-outline:hover {
+        background: var(--cyber-neon-green);
+        color: var(--cyber-dark);
+        box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+    }
+
+    .network-grid {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            linear-gradient(rgba(0, 217, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 217, 255, 0.05) 1px, transparent 1px);
+        background-size: 50px 50px;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .pulse-dot {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: var(--cyber-neon-green);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+        z-index: 1;
+    }
+
+    .pulse-dot:nth-child(1) { top: 20%; left: 15%; }
+    .pulse-dot:nth-child(2) { top: 60%; left: 80%; animation-delay: 0.5s; }
+    .pulse-dot:nth-child(3) { top: 80%; left: 30%; animation-delay: 1s; }
+    .pulse-dot:nth-child(4) { top: 40%; left: 60%; animation-delay: 1.5s; }
+
+    @keyframes pulse {
+        0%, 100% { 
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7);
+        }
+        50% { 
+            transform: scale(1.5);
+            box-shadow: 0 0 0 10px rgba(0, 255, 157, 0);
+        }
+    }
+
+    .data-stream {
+        position: absolute;
+        width: 2px;
+        height: 100%;
+        background: linear-gradient(transparent, var(--cyber-neon-blue), transparent);
+        animation: dataFlow 3s linear infinite;
+        opacity: 0.5;
+        z-index: 0;
+    }
+
+    .data-stream:nth-child(5) { left: 25%; animation-delay: 0s; }
+    .data-stream:nth-child(6) { left: 50%; animation-delay: 1s; }
+    .data-stream:nth-child(7) { left: 75%; animation-delay: 2s; }
+
+    @keyframes dataFlow {
+        0% { transform: translateY(-100%); }
+        100% { transform: translateY(100%); }
+    }
+
+    .hack-line {
+        position: absolute;
+        background: var(--cyber-neon-green);
+        height: 2px;
+        animation: hack 0.5s linear infinite;
+        opacity: 0.3;
+    }
+
+    @keyframes hack {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .stats-counter {
+        background: rgba(26, 31, 46, 0.7);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--cyber-neon-green);
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: #a0aec0;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .cyber-jumbotron {
+            padding: 2rem 1rem;
+        }
+        
+        .feature-card {
+            margin-bottom: 20px;
+        }
+        
+        .cyber-btn-primary,
+        .cyber-btn-outline {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<div class="cyber-bg">
+    <!-- Background elements -->
+    <div class="network-grid"></div>
+    <div class="pulse-dot"></div>
+    <div class="pulse-dot"></div>
+    <div class="pulse-dot"></div>
+    <div class="pulse-dot"></div>
+    <div class="data-stream"></div>
+    <div class="data-stream"></div>
+    <div class="data-stream"></div>
+    
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Main Hero Section -->
+                <div class="cyber-jumbotron mt-5 position-relative">
+                    <h1 class="display-4 fw-bold mb-4 cyber-text-glow" style="color: #ffffff;">
+                        CyberShield<span style="color: var(--cyber-neon-green);">.</span>
+                    </h1>
+                    <p class="lead mb-4 fs-3 cyber-subtitle-glow" style="color: var(--cyber-neon-blue);">
+                        Advanced Threat Intelligence Platform
+                    </p>
+                    <p class="fs-5 mb-4" style="color: #cbd5e0;">
+                        Real-time cyber attack detection powered by machine learning and secured with blockchain technology
+                    </p>
+                    <hr class="my-4" style="border-color: var(--cyber-light-gray);">
+                    
+                    <div class="mt-5">
+                        {% if not current_user.is_authenticated %}
+                            <a class="btn cyber-btn-primary btn-lg mx-2 mb-2" href="{{ url_for('register') }}">
+                                <i class="fas fa-shield-alt me-2"></i>Get Started
+                            </a>
+                            <a class="btn cyber-btn-outline btn-lg mx-2 mb-2" href="{{ url_for('login') }}">
+                                <i class="fas fa-sign-in-alt me-2"></i>Secure Login
+                            </a>
+                        {% else %}
+                            <a class="btn cyber-btn-primary btn-lg mx-2 mb-2" href="{{ url_for('predict') }}">
+                                <i class="fas fa-bolt me-2"></i>Analyze Traffic
+                            </a>
+                            <a class="btn cyber-btn-outline btn-lg mx-2 mb-2" href="{{ url_for('dashboard') }}">
+                                <i class="fas fa-chart-line me-2"></i>Dashboard
+                            </a>
+                            <a class="btn btn-lg mx-2 mb-2" 
+                               style="background: var(--cyber-neon-purple); color: white; border: none;" 
+                               href="{{ url_for('verify_hash') }}">
+                                <i class="fas fa-link me-2"></i>Verify Hash
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="row mt-5">
+                    <h3 class="text-center mb-4" style="color: #ffffff;">
+                        <i class="fas fa-star me-2" style="color: var(--cyber-neon-green);"></i>
+                        Core Features
+                    </h3>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card h-100">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-3">
+                                    <i class="fas fa-shield-alt fa-3x" style="color: var(--cyber-neon-green);"></i>
+                                </div>
+                                <h5 class="card-title mb-3">Real-time Threat Detection</h5>
+                                <p class="card-text">
+                                    Advanced ML algorithms analyze network patterns to identify DDoS, malware, phishing, and other cyber threats instantly.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card h-100">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-3">
+                                    <i class="fas fa-link fa-3x" style="color: var(--cyber-neon-blue);"></i>
+                                </div>
+                                <h5 class="card-title mb-3">Blockchain Integrity</h5>
+                                <p class="card-text">
+                                    Every prediction is cryptographically hashed and stored immutably. Verify reports with unique blockchain signatures.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card h-100">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-3">
+                                    <i class="fas fa-tools fa-3x" style="color: var(--cyber-neon-purple);"></i>
+                                </div>
+                                <h5 class="card-title mb-3">Automated Response</h5>
+                                <p class="card-text">
+                                    Get actionable prevention strategies and automated traffic conversion to neutralize detected threats immediately.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="stats-counter mt-5">
+                    <div class="row text-center">
+                        <div class="col-md-3 col-6 mb-4">
+                            <div class="stat-item">
+                                <div class="stat-value">99.8%</div>
+                                <div class="stat-label">Detection Accuracy</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-4">
+                            <div class="stat-item">
+                                <div class="stat-value">&lt;2s</div>
+                                <div class="stat-label">Response Time</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-4">
+                            <div class="stat-item">
+                                <div class="stat-value">24/7</div>
+                                <div class="stat-label">Monitoring</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-4">
+                            <div class="stat-item">
+                                <div class="stat-value">50+</div>
+                                <div class="stat-label">Attack Types</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA Section -->
+                <div class="text-center mt-5">
+                    <h4 style="color: #ffffff;" class="mb-4">
+                        Ready to Secure Your Network?
+                    </h4>
+                    <p style="color: #cbd5e0;" class="mb-4">
+                        Join thousands of organizations using CyberShield to protect their digital assets.
+                    </p>
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('register') }}" class="btn cyber-btn-primary btn-lg">
+                            <i class="fas fa-user-shield me-2"></i>Start Free Protection
+                        </a>
+                    {% else %}
+                        <div class="row">
+                            <div class="col-md-6 offset-md-3">
+                                <div class="feature-card p-4">
+                                    <h5 style="color: var(--cyber-neon-green);" class="mb-3">
+                                        <i class="fas fa-check-circle me-2"></i>Account Active
+                                    </h5>
+                                    <p style="color: #cbd5e0;" class="mb-3">
+                                        Your security system is online and monitoring. Continue to protect your network.
+                                    </p>
+                                    <a href="{{ url_for('predict') }}" class="btn cyber-btn-primary btn-sm">
+                                        <i class="fas fa-rocket me-1"></i>Launch Analysis
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Footer Note -->
+                <div class="text-center mt-5 pt-4" style="border-top: 1px solid var(--cyber-light-gray);">
+                    <p style="color: #718096; font-size: 0.9rem;">
+                        <i class="fas fa-lock me-1"></i>
+                        All data is encrypted and secured. ISO 27001 compliant.
+                        <br class="d-md-none">
+                        <span class="d-none d-md-inline"> | </span>
+                        <i class="fas fa-server ms-md-2 me-1"></i>
+                        Deployed on secure AWS infrastructure
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Font Awesome for icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+{% endblock %}

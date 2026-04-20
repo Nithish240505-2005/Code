@@ -1,0 +1,859 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Results Page Specific Styles */
+    .results-container {
+        position: relative;
+        overflow-x: hidden;
+        min-height: calc(100vh - 200px);
+    }
+
+    /* Main Results Card */
+    .cyber-results-card {
+        background: rgba(10, 14, 23, 0.9);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .cyber-results-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, 
+            {% if prediction == 'Normal' %}
+            var(--cyber-neon-green), 
+            var(--cyber-neon-blue)
+            {% else %}
+            #dc3545,
+            #ff6b6b
+            {% endif %});
+    }
+
+    .results-header {
+        background: rgba(26, 31, 46, 0.5);
+        padding: 2rem;
+        text-align: center;
+        border-bottom: 1px solid var(--cyber-light-gray);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .results-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 50%, 
+                {% if prediction == 'Normal' %}
+                rgba(0, 255, 157, 0.1)
+                {% else %}
+                rgba(220, 53, 69, 0.1)
+                {% endif %}, 
+                transparent 50%),
+            radial-gradient(circle at 80% 50%, 
+                {% if prediction == 'Normal' %}
+                rgba(0, 217, 255, 0.1)
+                {% else %}
+                rgba(255, 107, 107, 0.1)
+                {% endif %}, 
+                transparent 50%);
+    }
+
+    .results-header h3 {
+        color: var(--cyber-neon-green);
+        font-weight: 600;
+        font-size: 1.8rem;
+        margin: 0;
+        letter-spacing: 1px;
+        position: relative;
+    }
+
+    .results-header h3.normal {
+        background: linear-gradient(45deg, var(--cyber-neon-green), var(--cyber-neon-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .results-header h3.attack {
+        background: linear-gradient(45deg, #dc3545, #ff6b6b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .confidence-badge {
+        position: absolute;
+        top: 2rem;
+        right: 2rem;
+        background: {% if prediction == 'Normal' %}rgba(0, 255, 157, 0.1){% else %}rgba(220, 53, 69, 0.1){% endif %};
+        border: 1px solid {% if prediction == 'Normal' %}var(--cyber-neon-green){% else %}#dc3545{% endif %};
+        color: {% if prediction == 'Normal' %}var(--cyber-neon-green){% else %}#dc3545{% endif %};
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Main Alert */
+    .main-alert {
+        background: {% if prediction == 'Normal' %}rgba(0, 255, 157, 0.1){% else %}rgba(220, 53, 69, 0.1){% endif %};
+        border: 1px solid {% if prediction == 'Normal' %}var(--cyber-neon-green){% else %}#dc3545{% endif %};
+        border-left: 4px solid {% if prediction == 'Normal' %}var(--cyber-neon-green){% else %}#dc3545{% endif %};
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .main-alert::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, 
+            {% if prediction == 'Normal' %}
+            var(--cyber-neon-green), 
+            var(--cyber-neon-blue)
+            {% else %}
+            #dc3545,
+            #ff6b6b
+            {% endif %});
+    }
+
+    .alert-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: {% if prediction == 'Normal' %}var(--cyber-neon-green){% else %}#dc3545{% endif %};
+    }
+
+    .alert-heading {
+        color: {% if prediction == 'Normal' %}var(--cyber-neon-green){% else %}#dc3545{% endif %};
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .alert-message {
+        color: var(--cyber-text-light);
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Blockchain Section */
+    .blockchain-section {
+        background: rgba(26, 31, 46, 0.5);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 10px;
+        margin: 1.5rem;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .blockchain-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--cyber-neon-green), var(--cyber-neon-blue));
+    }
+
+    .section-title {
+        color: var(--cyber-neon-green);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .hash-display {
+        background: rgba(10, 14, 23, 0.7);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 8px;
+        padding: 1rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        color: var(--cyber-neon-blue);
+        word-break: break-all;
+        line-height: 1.4;
+        margin-bottom: 1rem;
+    }
+
+    .hash-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    /* Email Notification */
+    .email-section {
+        background: rgba(23, 162, 184, 0.1);
+        border: 1px solid rgba(23, 162, 184, 0.3);
+        border-radius: 10px;
+        margin: 1.5rem;
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    .email-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #17a2b8, var(--cyber-neon-blue));
+    }
+
+    .email-alert {
+        background: rgba(23, 162, 184, 0.15);
+        border: 1px solid rgba(23, 162, 184, 0.3);
+        border-radius: 6px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--cyber-text-light);
+    }
+
+    .email-icon {
+        font-size: 1.5rem;
+        color: #17a2b8;
+    }
+
+    /* Details Grid */
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin: 1.5rem;
+    }
+
+    .details-card {
+        background: rgba(26, 31, 46, 0.5);
+        border: 1px solid var(--cyber-light-gray);
+        border-radius: 10px;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .details-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, 
+            var(--cyber-neon-green), 
+            var(--cyber-neon-blue));
+    }
+
+    .details-title {
+        color: var(--cyber-neon-green);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .suggestions-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .suggestions-list li {
+        color: var(--cyber-text-light);
+        margin-bottom: 0.75rem;
+        padding-left: 1.5rem;
+        position: relative;
+        line-height: 1.4;
+    }
+
+    .suggestions-list li::before {
+        content: '→';
+        position: absolute;
+        left: 0;
+        color: var(--cyber-neon-green);
+        font-weight: bold;
+    }
+
+    .prevention-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .prevention-list li {
+        color: var(--cyber-text-light);
+        margin-bottom: 0.75rem;
+        padding-left: 1.5rem;
+        position: relative;
+        line-height: 1.4;
+    }
+
+    .prevention-list li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--cyber-neon-green);
+        font-weight: bold;
+    }
+
+    .details-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .details-table th {
+        color: var(--cyber-text-dark);
+        font-weight: 500;
+        text-align: left;
+        padding: 0.5rem 0;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--cyber-light-gray);
+    }
+
+    .details-table td {
+        color: var(--cyber-text-light);
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--cyber-light-gray);
+        vertical-align: middle;
+    }
+
+    .details-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .prediction-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-normal {
+        background: rgba(0, 255, 157, 0.2);
+        color: var(--cyber-neon-green);
+        border: 1px solid rgba(0, 255, 157, 0.3);
+    }
+
+    .badge-attack {
+        background: rgba(220, 53, 69, 0.2);
+        color: #ff6b6b;
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .confidence-meter {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .confidence-bar {
+        width: 100px;
+        height: 6px;
+        background: var(--cyber-light-gray);
+        border-radius: 3px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .confidence-fill {
+        height: 100%;
+        background: {% if confidence > 80 %}#28a745{% elif confidence > 60 %}#ffc107{% else %}#dc3545{% endif %};
+        border-radius: 3px;
+        width: {{ confidence }}%;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--cyber-light-gray);
+    }
+
+    .cyber-action-btn {
+        background: linear-gradient(45deg, var(--cyber-neon-green), var(--cyber-neon-blue));
+        color: var(--cyber-dark);
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .cyber-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 255, 157, 0.3);
+        text-decoration: none;
+        color: var(--cyber-dark);
+    }
+
+    .cyber-action-btn.secondary {
+        background: rgba(26, 31, 46, 0.7);
+        border: 1px solid var(--cyber-neon-blue);
+        color: var(--cyber-neon-blue);
+    }
+
+    .cyber-action-btn.secondary:hover {
+        background: rgba(0, 217, 255, 0.1);
+        box-shadow: 0 5px 20px rgba(0, 217, 255, 0.2);
+    }
+
+    .cyber-action-btn.outline {
+        background: rgba(26, 31, 46, 0.7);
+        border: 1px solid var(--cyber-light-gray);
+        color: var(--cyber-text-light);
+    }
+
+    .cyber-action-btn.outline:hover {
+        border-color: var(--cyber-neon-green);
+        color: var(--cyber-neon-green);
+    }
+
+    /* Animation for results */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .results-animate {
+        animation: fadeInUp 0.6s ease;
+    }
+
+    /* Risk Level Indicator */
+    .risk-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .risk-low {
+        background: rgba(0, 255, 157, 0.1);
+        color: var(--cyber-neon-green);
+        border: 1px solid rgba(0, 255, 157, 0.3);
+    }
+
+    .risk-medium {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .risk-high {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .cyber-results-card {
+            margin: 1rem;
+        }
+        
+        .results-header {
+            padding: 1.5rem;
+        }
+        
+        .confidence-badge {
+            position: relative;
+            top: 0;
+            right: 0;
+            margin-top: 1rem;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .cyber-action-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .hash-actions {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .main-alert,
+        .blockchain-section,
+        .email-section,
+        .details-card {
+            margin: 1rem;
+            padding: 1rem;
+        }
+        
+        .results-header h3 {
+            font-size: 1.5rem;
+        }
+        
+        .hash-display {
+            font-size: 0.75rem;
+        }
+    }
+</style>
+
+<div class="results-container">
+    <!-- Results Card -->
+    <div class="cyber-results-card results-animate">
+        <!-- Header -->
+        <div class="results-header">
+            <h3 class="{% if prediction == 'Normal' %}normal{% else %}attack{% endif %}">
+                {% if prediction == 'Normal' %}
+                    <i class="fas fa-shield-alt me-2"></i>Normal Traffic Detected
+                {% else %}
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ prediction }} Attack Detected
+                {% endif %}
+            </h3>
+            
+            <div class="confidence-badge">
+                <i class="fas fa-chart-line"></i>
+                {{ "%.1f"|format(confidence) }}% Confidence
+            </div>
+        </div>
+
+        <!-- Main Alert -->
+        <div class="main-alert">
+            <div class="alert-icon">
+                {% if prediction == 'Normal' %}
+                    <i class="fas fa-check-circle"></i>
+                {% else %}
+                    <i class="fas fa-exclamation-triangle"></i>
+                {% endif %}
+            </div>
+            <h4 class="alert-heading">
+                {% if prediction == 'Normal' %}
+                    ✅ All Clear!
+                {% else %}
+                    ⚠️ Security Alert!
+                {% endif %}
+            </h4>
+            <p class="alert-message">
+                {% if prediction == 'Normal' %}
+                    No malicious activity detected in the analyzed network traffic. The system appears to be operating within normal parameters.
+                {% else %}
+                    A <strong>{{ prediction }}</strong> attack has been detected with <strong>{{ "%.1f"|format(confidence) }}%</strong> confidence level. Immediate action is recommended.
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Blockchain Verification -->
+        <div class="blockchain-section">
+            <h5 class="section-title">
+                <i class="fas fa-link"></i>
+                Blockchain Verification
+            </h5>
+            <p style="color: var(--cyber-text-light); margin-bottom: 1rem;">
+                This prediction has been securely stored on the blockchain. Use the SHA-256 hash below to verify and download the complete report.
+            </p>
+            
+            <div class="hash-display">
+                {{ hash }}
+            </div>
+            
+            <div class="hash-actions">
+                <button class="cyber-action-btn" onclick="copyHash('{{ hash }}')">
+                    <i class="fas fa-copy"></i> Copy Hash
+                </button>
+                <a href="{{ url_for('verify_hash') }}" class="cyber-action-btn secondary">
+                    <i class="fas fa-download"></i> Download Report
+                </a>
+                <a href="{{ url_for('verify_hash') }}?hash={{ hash }}" class="cyber-action-btn outline">
+                    <i class="fas fa-search"></i> Verify Now
+                </a>
+            </div>
+        </div>
+
+        <!-- Email Notification (for attacks) -->
+        {% if prediction != 'Normal' %}
+        <div class="email-section">
+            <h5 class="section-title" style="color: #17a2b8;">
+                <i class="fas fa-envelope"></i>
+                Email Notification
+            </h5>
+            <div class="email-alert">
+                <div class="email-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div>
+                    <strong>Security Alert Sent!</strong> A detailed report has been sent to your registered email address. 
+                    Check your inbox for the complete analysis and recommended actions.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Details Grid -->
+        <div class="details-grid">
+            <!-- Recommended Actions -->
+            <div class="details-card">
+                <h5 class="details-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Recommended Actions
+                </h5>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="color: var(--cyber-text-dark); font-size: 0.9rem; margin-bottom: 0.5rem;">Immediate Steps</div>
+                    <div style="color: var(--cyber-text-light); background: rgba(0, 255, 157, 0.1); border-left: 3px solid var(--cyber-neon-green); padding: 0.75rem; border-radius: 0 4px 4px 0;">
+                        {{ suggestions }}
+                    </div>
+                </div>
+                
+                <div>
+                    <div style="color: var(--cyber-text-dark); font-size: 0.9rem; margin-bottom: 0.5rem;">Prevention Measures</div>
+                    <ul class="prevention-list">
+                        {% for measure in prevention %}
+                        <li>{{ measure }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Prediction Details -->
+            <div class="details-card">
+                <h5 class="details-title">
+                    <i class="fas fa-info-circle"></i>
+                    Analysis Details
+                </h5>
+                
+                <table class="details-table">
+                    <tr>
+                        <th>Attack Type</th>
+                        <td>
+                            <span class="prediction-badge {% if prediction == 'Normal' %}badge-normal{% else %}badge-attack{% endif %}">
+                                {{ prediction }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Confidence Level</th>
+                        <td>
+                            <div class="confidence-meter">
+                                <span>{{ "%.1f"|format(confidence) }}%</span>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Risk Assessment</th>
+                        <td>
+                            {% if prediction == 'Normal' %}
+                                <span class="risk-indicator risk-low">
+                                    <i class="fas fa-check-circle"></i> Low Risk
+                                </span>
+                            {% elif confidence > 80 %}
+                                <span class="risk-indicator risk-high">
+                                    <i class="fas fa-exclamation-triangle"></i> High Risk
+                                </span>
+                            {% else %}
+                                <span class="risk-indicator risk-medium">
+                                    <i class="fas fa-exclamation-circle"></i> Medium Risk
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Timestamp</th>
+                        <td>{{ get_current_datetime() }}</td>
+                    </tr>
+                    <tr>
+                        <th>Source IP</th>
+                        <td>
+                            <code style="color: var(--cyber-neon-blue);">{{ input_data.get('Source IP Address', 'N/A') }}</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Destination IP</th>
+                        <td>
+                            <code style="color: var(--cyber-neon-blue);">{{ input_data.get('Destination IP Address', 'N/A') }}</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Protocol</th>
+                        <td>{{ input_data.get('Protocol', 'N/A') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Ports</th>
+                        <td>{{ input_data.get('Source Port', 'N/A') }} → {{ input_data.get('Destination Port', 'N/A') }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{{ url_for('predict') }}" class="cyber-action-btn">
+                <i class="fas fa-shield-check"></i> New Analysis
+            </a>
+            <a href="{{ url_for('verify_hash') }}?hash={{ hash }}" class="cyber-action-btn secondary">
+                <i class="fas fa-file-export"></i> Export Report
+            </a>
+            <a href="{{ url_for('history') }}" class="cyber-action-btn outline">
+                <i class="fas fa-history"></i> View History
+            </a>
+            <button class="cyber-action-btn outline" onclick="shareResults()">
+                <i class="fas fa-share-alt"></i> Share Results
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Copy hash to clipboard
+    function copyHash(hash) {
+        navigator.clipboard.writeText(hash).then(() => {
+            showAlert('Hash copied to clipboard!', 'success');
+        }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = hash;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showAlert('Hash copied to clipboard!', 'success');
+        });
+    }
+    
+    // Share results
+    function shareResults() {
+        const shareData = {
+            title: 'CyberShield Security Analysis',
+            text: `Security analysis completed: ${prediction} detected with ${confidence}% confidence.`,
+            url: window.location.href
+        };
+        
+        if (navigator.share) {
+            navigator.share(shareData)
+                .then(() => console.log('Results shared successfully'))
+                .catch(error => console.log('Error sharing:', error));
+        } else {
+            // Fallback: copy to clipboard
+            copyHash(hash);
+        }
+    }
+    
+    // Show alert message
+    function showAlert(message, type) {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alert.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alert);
+        
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 3000);
+    }
+    
+    // Auto-scroll to results
+    document.addEventListener('DOMContentLoaded', function() {
+        // Smooth scroll to results
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+        
+        // Add animation to confidence bar
+        const confidenceFill = document.querySelector('.confidence-fill');
+        if (confidenceFill) {
+            confidenceFill.style.width = '0%';
+            setTimeout(() => {
+                confidenceFill.style.transition = 'width 1.5s ease-in-out';
+                confidenceFill.style.width = '{{ confidence }}%';
+            }, 500);
+        }
+        
+        // Add pulse animation to alert for attacks
+        {% if prediction != 'Normal' %}
+        const mainAlert = document.querySelector('.main-alert');
+        if (mainAlert) {
+            let pulseCount = 0;
+            const pulseInterval = setInterval(() => {
+                if (pulseCount < 3) {
+                    mainAlert.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        mainAlert.style.transform = 'scale(1)';
+                    }, 300);
+                    pulseCount++;
+                } else {
+                    clearInterval(pulseInterval);
+                }
+            }, 1000);
+        }
+        {% endif %}
+        
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+
+{% endblock %}

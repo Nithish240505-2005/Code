@@ -1,0 +1,2 @@
+"I've attached the ransomware decryption tool",
+    "Click to install security update: malware.exe",
